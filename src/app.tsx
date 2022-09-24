@@ -1,27 +1,15 @@
-import { KeyboardEvent, useState } from 'react';
-
-interface Todo {
-  task: string;
-  done: boolean;
-}
+import { KeyboardEvent } from 'react';
+import { useTodoStore } from './todo-store';
 
 function App() {
-  const [todos, todosSet] = useState([] as Todo[]);
-  const [input, inputSet] = useState('');
-
-  const addTodo = () =>
-    todosSet((todos) => [...todos, { task: input, done: false }]);
-
-  const toggleTodo = (i: number) =>
-    todosSet((todos) =>
-      todos.map((todo, index) => ({
-        ...todo,
-        done: i === index ? !todo.done : todo.done,
-      }))
-    );
-
-  const addTodoWithEnterKey = (e: KeyboardEvent<HTMLInputElement>) =>
-    e.key === 'Enter' && addTodo();
+  const {
+    todos,
+    input,
+    handleInputChange,
+    addTodo,
+    toggleTodo,
+    addTodoWithEnterKey,
+  } = useTodoStore();
 
   return (
     <div className='mx-auto container p-12 flex flex-col gap-3'>
@@ -29,7 +17,7 @@ function App() {
         <input
           type='text'
           value={input}
-          onChange={(e) => inputSet(e.currentTarget.value)}
+          onChange={(e) => handleInputChange(e.currentTarget.value)}
           className='rounded-md w-72 text-gray-800 p-2'
           onKeyDown={addTodoWithEnterKey}
           placeholder='My super fun task :D'
@@ -45,17 +33,19 @@ function App() {
 
       <div>
         {todos.map((todo, i) => (
-          <div key={i} className='flex gap-4'>
+          <div key={i} className='flex gap-2 items-center'>
             <input
               type='checkbox'
-              className='cursor-pointer bg-black-900'
+              className='w-5 h-5 cursor-pointer bg-black-900'
               checked={todo.done}
               onChange={() => toggleTodo(i)}
             />
             <span
               className='cursor-default text-lg'
-              style={{ textDecoration: todo.done ? 'line-through' : '' }}
-              onClick={() => toggleTodo(i)}
+              style={{
+                textDecoration: todo.done ? 'line-through' : '',
+                color: todo.done ? 'gray' : 'inherit',
+              }}
             >
               {todo.task}
             </span>
