@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from 'react';
 import { useTodoStore } from './todo-store';
 
 function App() {
@@ -9,6 +10,26 @@ function App() {
     toggleTodo,
     addTodoWithEnterKey,
   } = useTodoStore();
+
+  const [anchorPoint, setAnchorPoint] = useState({ x: 0, y: 0 });
+  const [showContextMenu, setShowContextMenu] = useState(false);
+
+  const handleContextMenu = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault();
+      setAnchorPoint({ x: e.pageX, y: e.pageY });
+      setShowContextMenu(true);
+    },
+    [setAnchorPoint, setShowContextMenu]
+  );
+
+  useEffect(() => {
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  });
 
   return (
     <div className='mx-auto container p-12 flex flex-col gap-3'>
@@ -32,7 +53,12 @@ function App() {
 
       <div>
         {todos.map((todo, i) => (
-          <div key={i} className='flex gap-2 items-center'>
+          <div
+            key={i}
+            contextMenu='mymenu'
+            // onContextMenu={(e) => console.log(e)}
+            className='flex gap-2 items-center'
+          >
             <input
               type='checkbox'
               className='w-5 h-5 cursor-pointer bg-black-900'
