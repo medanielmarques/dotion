@@ -1,4 +1,3 @@
-import { KeyboardEvent } from 'react';
 import { useTodoStore } from './todo-store';
 
 function App() {
@@ -25,7 +24,7 @@ function App() {
 
         <button
           className='p-2 bg-gray-500 rounded-md hover:bg-gray-400'
-          onClick={addTodo}
+          onClick={() => input !== '' && addTodo()}
         >
           add task
         </button>
