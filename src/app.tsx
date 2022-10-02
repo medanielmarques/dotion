@@ -1,6 +1,37 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTodoStore } from './todo-store';
 
+const useContextMenu = () => {
+  const [anchorPoint, setAnchorPoint] = useState({ x: 0, y: 0 });
+  const [showContextMenu, setShowContextMenu] = useState(false);
+
+  const handleContextMenu = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault();
+      setAnchorPoint({ x: e.pageX, y: e.pageY });
+      setShowContextMenu(true);
+    },
+    [setAnchorPoint]
+  );
+
+  const handleClickContextMenu = useCallback(
+    () => showContextMenu && setShowContextMenu(false),
+    [showContextMenu]
+  );
+
+  useEffect(() => {
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('click', handleClickContextMenu);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('click', handleClickContextMenu);
+    };
+  });
+
+  return { anchorPoint, showContextMenu };
+};
+
 function App() {
   const {
     todos,
@@ -11,25 +42,7 @@ function App() {
     addTodoWithEnterKey,
   } = useTodoStore();
 
-  const [anchorPoint, setAnchorPoint] = useState({ x: 0, y: 0 });
-  const [showContextMenu, setShowContextMenu] = useState(false);
-
-  const handleContextMenu = useCallback(
-    (e: MouseEvent) => {
-      e.preventDefault();
-      setAnchorPoint({ x: e.pageX, y: e.pageY });
-      setShowContextMenu((show) => !show);
-    },
-    [setAnchorPoint, setShowContextMenu]
-  );
-
-  useEffect(() => {
-    document.addEventListener('contextmenu', handleContextMenu);
-
-    return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-    };
-  });
+  const { anchorPoint, showContextMenu } = useContextMenu();
 
   return (
     <>
