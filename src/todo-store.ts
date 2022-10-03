@@ -1,32 +1,37 @@
+import cuid from 'cuid';
 import { KeyboardEvent } from 'react';
 import create from 'zustand';
 
-interface Todo {
+export interface ITodo {
+  id: string;
   task: string;
   done: boolean;
 }
 
 interface TodoStore {
-  todos: Todo[];
+  todos: ITodo[];
   input: string;
   handleInputChange: (newInput: string) => void;
   addTodo: () => void;
-  toggleTodo: (index: number) => void;
+  toggleTodo: (id: string) => void;
   addTodoWithEnterKey: (e: KeyboardEvent<HTMLInputElement>) => void;
 }
 
 const addTodo = (input: string) => {
-  const newTodos: Todo[] = [...getTodos(), { task: input, done: false }];
+  const newTodos: ITodo[] = [
+    ...getTodos(),
+    { task: input, done: false, id: cuid() },
+  ];
   localStorage.setItem('todos', JSON.stringify(newTodos));
   return newTodos;
 };
 
-const toggleTodo = (index: number): Todo[] => {
+const toggleTodo = (id: string): ITodo[] => {
   const todos = getTodos();
 
-  const newTodos = todos.map((todo, i) => ({
+  const newTodos = todos.map((todo) => ({
     ...todo,
-    done: index === i ? !todo.done : todo.done,
+    done: todo.id === id ? !todo.done : todo.done,
   }));
 
   localStorage.setItem('todos', JSON.stringify(newTodos));
@@ -42,7 +47,7 @@ const getTodos = () => {
 
   console.log(JSON.parse(localStorage.getItem('todos') || ''));
 
-  return JSON.parse(localStorage.getItem('todos') || '') as Todo[];
+  return JSON.parse(localStorage.getItem('todos') || '') as ITodo[];
 };
 
 export const useTodoStore = create<TodoStore>((set) => ({
@@ -66,10 +71,10 @@ export const useTodoStore = create<TodoStore>((set) => ({
       }));
   },
 
-  toggleTodo: (index: number) => {
+  toggleTodo: (id: string) => {
     set((state) => ({
       ...state,
-      todos: toggleTodo(index),
+      todos: toggleTodo(id),
     }));
   },
 

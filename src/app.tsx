@@ -1,48 +1,21 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useTodoStore } from './todo-store';
+import {
+  Trash as DeleteIcon,
+  DotsSixVertical as HamburgerMenuIcon,
+} from 'phosphor-react';
+import { useEffect } from 'react';
 
-const useContextMenu = () => {
-  const [anchorPoint, setAnchorPoint] = useState({ x: 0, y: 0 });
-  const [showContextMenu, setShowContextMenu] = useState(false);
+import { useContextMenuStore } from './context-menu-store';
+import { ITodo, useTodoStore } from './todo-store';
 
-  const handleContextMenu = useCallback(
-    (e: MouseEvent) => {
-      e.preventDefault();
-      setAnchorPoint({ x: e.pageX, y: e.pageY });
-      setShowContextMenu(true);
-    },
-    [setAnchorPoint]
-  );
+export const App = () => {
+  const { todos, input, handleInputChange, addTodo, addTodoWithEnterKey } =
+    useTodoStore();
 
-  const handleClickContextMenu = useCallback(
-    () => showContextMenu && setShowContextMenu(false),
-    [showContextMenu]
-  );
+  const { showContextMenu, closeContextMenu } = useContextMenuStore();
 
   useEffect(() => {
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('click', handleClickContextMenu);
-
-    return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('click', handleClickContextMenu);
-    };
+    document.addEventListener('click', closeContextMenu);
   });
-
-  return { anchorPoint, showContextMenu };
-};
-
-function App() {
-  const {
-    todos,
-    input,
-    handleInputChange,
-    addTodo,
-    toggleTodo,
-    addTodoWithEnterKey,
-  } = useTodoStore();
-
-  const { anchorPoint, showContextMenu } = useContextMenu();
 
   return (
     <>
@@ -67,42 +40,69 @@ function App() {
 
         <div>
           {todos.map((todo, i) => (
-            <div
-              key={i}
-              contextMenu='mymenu'
-              // onContextMenu={(e) => console.log(e)}
-              className='flex gap-2 items-center'
-            >
-              <input
-                type='checkbox'
-                className='w-5 h-5 cursor-pointer bg-black-900'
-                checked={todo.done}
-                onChange={() => toggleTodo(i)}
-              />
-              <span
-                className='cursor-default text-lg'
-                style={{
-                  textDecoration: todo.done ? 'line-through' : '',
-                  color: todo.done ? 'gray' : 'inherit',
-                }}
-              >
-                {todo.task}
-              </span>
-            </div>
+            <Todo key={todo.id} todo={todo} />
           ))}
         </div>
       </div>
 
-      {showContextMenu && (
-        <div
-          className='bg-neutral-300 w-40 h-40 absolute'
-          style={{ top: anchorPoint.y, left: anchorPoint.x }}
-        >
-          <button>stuff</button>
-        </div>
-      )}
+      {showContextMenu && <ContextMenu />}
     </>
   );
-}
+};
 
-export default App;
+const Todo = ({ todo }: { todo: ITodo }) => {
+  const { toggleTodo } = useTodoStore();
+
+  const { handleContextMenu } = useContextMenuStore();
+
+  return (
+    <div className='flex gap-2 items-center'>
+      <HamburgerMenuIcon
+        onContextMenu={handleContextMenu}
+        size={20}
+        className='cursor-pointer text-zinc-500'
+      />
+
+      <input
+        type='checkbox'
+        className='w-5 h-5 cursor-pointer bg-black-900'
+        checked={todo.done}
+        onContextMenu={handleContextMenu}
+        onChange={() => toggleTodo(todo.id)}
+      />
+
+      <span
+        className='cursor-default text-lg'
+        style={{
+          textDecoration: todo.done ? 'line-through' : '',
+          color: todo.done ? 'gray' : 'inherit',
+        }}
+      >
+        {todo.task}
+      </span>
+    </div>
+  );
+};
+
+const ContextMenu = () => {
+  const { anchorPoint } = useContextMenuStore();
+
+  return (
+    <div
+      className='bg-gray-700 w-72 h-96 absolute rounded-md p-3'
+      style={{ top: anchorPoint.y, left: anchorPoint.x }}
+    >
+      <div
+        className='flex items-center justify-between cursor-pointer
+      hover:bg-gray-600 rounded-md py-2 px-3'
+      >
+        <div className='flex items-center gap-2'>
+          <DeleteIcon size={20} />
+          <button className='text-lg'>Delete</button>
+        </div>
+
+        <span className='text-gray-400'>Del</span>
+      </div>
+    </div>
+  );
+};
