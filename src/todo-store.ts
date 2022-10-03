@@ -15,14 +15,20 @@ interface TodoStore {
   addTodo: () => void;
   toggleTodo: (id: string) => void;
   addTodoWithEnterKey: (e: KeyboardEvent<HTMLInputElement>) => void;
+  deleteItem: (id: string) => void;
 }
+
+const setTodos = (todos: ITodo[]) => {
+  localStorage.setItem('todos', JSON.stringify(todos || []));
+};
 
 const addTodo = (input: string) => {
   const newTodos: ITodo[] = [
     ...getTodos(),
     { task: input, done: false, id: cuid() },
   ];
-  localStorage.setItem('todos', JSON.stringify(newTodos));
+
+  setTodos(newTodos);
   return newTodos;
 };
 
@@ -34,20 +40,26 @@ const toggleTodo = (id: string): ITodo[] => {
     done: todo.id === id ? !todo.done : todo.done,
   }));
 
-  localStorage.setItem('todos', JSON.stringify(newTodos));
+  setTodos(newTodos);
   return newTodos;
 };
 
 const getTodos = () => {
   const todos = localStorage.getItem('todos');
-
-  if (!todos) {
-    localStorage.setItem('todos', JSON.stringify([]));
-  }
+  !todos && setTodos([]);
 
   console.log(JSON.parse(localStorage.getItem('todos') || ''));
 
   return JSON.parse(localStorage.getItem('todos') || '') as ITodo[];
+};
+
+const deleteItem = (id: string) => {
+  const todos = getTodos();
+  const index = todos.findIndex((todo) => todo.id === id);
+  todos.splice(index, 1);
+
+  setTodos(todos);
+  return todos;
 };
 
 export const useTodoStore = create<TodoStore>((set) => ({
@@ -80,5 +92,12 @@ export const useTodoStore = create<TodoStore>((set) => ({
 
   handleInputChange: (newInput: string) => {
     set((state) => ({ ...state, input: newInput }));
+  },
+
+  deleteItem: (id: string) => {
+    set((state) => ({
+      ...state,
+      todos: deleteItem(id),
+    }));
   },
 }));

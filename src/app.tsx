@@ -11,9 +11,11 @@ export const App = () => {
   const { todos, input, handleInputChange, addTodo, addTodoWithEnterKey } =
     useTodoStore();
 
-  const { showContextMenu, closeContextMenu } = useContextMenuStore();
+  const { showContextMenu, closeContextMenu, selectedItemId } =
+    useContextMenuStore();
 
   useEffect(() => {
+    console.log(selectedItemId);
     document.addEventListener('click', closeContextMenu);
   });
 
@@ -52,22 +54,21 @@ export const App = () => {
 
 const Todo = ({ todo }: { todo: ITodo }) => {
   const { toggleTodo } = useTodoStore();
-
   const { handleContextMenu } = useContextMenuStore();
 
   return (
     <div className='flex gap-2 items-center'>
       <HamburgerMenuIcon
-        onContextMenu={handleContextMenu}
+        onContextMenu={(e) => handleContextMenu(e, todo.id)}
         size={20}
-        className='cursor-pointer text-zinc-500'
+        className='cursor-pointer text-zinc-500 hover:bg-gray-700 rounded-sm'
       />
 
       <input
         type='checkbox'
         className='w-5 h-5 cursor-pointer bg-black-900'
         checked={todo.done}
-        onContextMenu={handleContextMenu}
+        onContextMenu={(e) => handleContextMenu(e, todo.id)}
         onChange={() => toggleTodo(todo.id)}
       />
 
@@ -85,7 +86,8 @@ const Todo = ({ todo }: { todo: ITodo }) => {
 };
 
 const ContextMenu = () => {
-  const { anchorPoint } = useContextMenuStore();
+  const { anchorPoint, selectedItemId } = useContextMenuStore();
+  const { deleteItem } = useTodoStore();
 
   return (
     <div
@@ -95,6 +97,7 @@ const ContextMenu = () => {
       <div
         className='flex items-center justify-between cursor-pointer
       hover:bg-gray-600 rounded-md py-2 px-3'
+        onClick={() => deleteItem(selectedItemId)}
       >
         <div className='flex items-center gap-2'>
           <DeleteIcon size={20} />
