@@ -16,6 +16,7 @@ interface TodoStore {
   toggleTodo: (id: string) => void;
   addTodoWithEnterKey: (e: KeyboardEvent<HTMLInputElement>) => void;
   deleteItem: (id: string) => void;
+  duplicateItem: (id: string) => void;
 }
 
 const setTodos = (todos: ITodo[]) => {
@@ -62,6 +63,18 @@ const deleteItem = (id: string) => {
   return todos;
 };
 
+const duplicateItem = (id: string) => {
+  const todos = getTodos();
+  const itemToDuplicate = todos.find((todo) => todo.id === id);
+  todos.push({
+    ...(itemToDuplicate || { id: cuid(), task: '', done: false }),
+    id: cuid(),
+  });
+
+  setTodos(todos);
+  return todos;
+};
+
 export const useTodoStore = create<TodoStore>((set) => ({
   todos: getTodos() || [],
   input: '',
@@ -98,6 +111,13 @@ export const useTodoStore = create<TodoStore>((set) => ({
     set((state) => ({
       ...state,
       todos: deleteItem(id),
+    }));
+  },
+
+  duplicateItem: (id: string) => {
+    set((state) => ({
+      ...state,
+      todos: duplicateItem(id),
     }));
   },
 }));

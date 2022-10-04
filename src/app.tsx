@@ -1,8 +1,9 @@
 import {
+  Copy as CopyIcon,
   Trash as DeleteIcon,
   DotsSixVertical as HamburgerMenuIcon,
 } from 'phosphor-react';
-import { useEffect } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 import { useContextMenuStore } from './context-menu-store';
 import { ITodo, useTodoStore } from './todo-store';
@@ -11,8 +12,7 @@ export const App = () => {
   const { todos, input, handleInputChange, addTodo, addTodoWithEnterKey } =
     useTodoStore();
 
-  const { showContextMenu, closeContextMenu, selectedItemId } =
-    useContextMenuStore();
+  const { closeContextMenu, selectedItemId } = useContextMenuStore();
 
   useEffect(() => {
     console.log(selectedItemId);
@@ -47,7 +47,7 @@ export const App = () => {
         </div>
       </div>
 
-      {showContextMenu && <ContextMenu />}
+      <ContextMenu />
     </>
   );
 };
@@ -86,26 +86,57 @@ const Todo = ({ todo }: { todo: ITodo }) => {
 };
 
 const ContextMenu = () => {
-  const { anchorPoint, selectedItemId } = useContextMenuStore();
-  const { deleteItem } = useTodoStore();
+  const { anchorPoint, selectedItemId, showContextMenu } =
+    useContextMenuStore();
+  const { deleteItem, duplicateItem } = useTodoStore();
+
+  if (!showContextMenu) return null;
 
   return (
     <div
-      className='bg-gray-700 w-72 h-96 absolute rounded-md p-3'
+      className='bg-gray-700 w-80 h-96 absolute rounded-md p-3'
       style={{ top: anchorPoint.y, left: anchorPoint.x }}
     >
-      <div
-        className='flex items-center justify-between cursor-pointer
-      hover:bg-gray-600 rounded-md py-2 px-3'
-        onClick={() => deleteItem(selectedItemId)}
+      <ContextMenuItem
+        label='Delete'
+        handleClick={() => deleteItem(selectedItemId)}
+        shortcut='Del'
       >
-        <div className='flex items-center gap-2'>
-          <DeleteIcon size={20} />
-          <button className='text-lg'>Delete</button>
-        </div>
+        <DeleteIcon size={20} />
+      </ContextMenuItem>
 
-        <span className='text-gray-400'>Del</span>
-      </div>
+      <ContextMenuItem
+        label='Duplicate'
+        handleClick={() => duplicateItem(selectedItemId)}
+        shortcut='Ctrl+D'
+      >
+        <CopyIcon size={20} />
+      </ContextMenuItem>
     </div>
   );
 };
+
+const ContextMenuItem = ({
+  label,
+  handleClick,
+  shortcut,
+  children,
+}: {
+  label: string;
+  handleClick: () => void;
+  shortcut: string;
+  children: ReactNode;
+}) => (
+  <div
+    className='flex items-center justify-between cursor-pointer
+      hover:bg-gray-600 rounded-md py-1 px-3'
+    onClick={handleClick}
+  >
+    <div className='flex items-center gap-2'>
+      {children}
+      <button className='text-lg'>{label}</button>
+    </div>
+
+    <span className='text-gray-400'>{shortcut}</span>
+  </div>
+);
